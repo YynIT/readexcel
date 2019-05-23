@@ -5,14 +5,18 @@ import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.InputStream;
+import java.util.List;
 
 import jxl.Sheet;
 import jxl.Workbook;
+
+import static java.security.AccessController.getContext;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,5 +76,69 @@ public class MainActivity extends AppCompatActivity {
             textView.append("点击触发\n");
             readExcel();
         }
+    }
+
+    /**
+     * api版本6.0及以上，动态权限请求
+     */
+//    private void requestPermissions(int type, long repaymentTime) {
+//        requestPermissions(mNecessaryPermissions, new PermissionsListener() {
+//            @Override
+//            public void onGranted() {
+//                //具备所有权限
+//                if (type == 1) {
+//                    queryCalendarEvent(repaymentTime);
+//                } else if (type == 2) {
+//                    addCalendarEvent(repaymentTime);
+//                }
+//            }
+//
+//            @Override
+//            public void onDenied(List<String> deniedPermissions, boolean isNeverAsk) {
+//                if (!isNeverAsk) { //请求权限没有全被勾选不再提示然后拒绝
+//                    showPermissionDialog("为了能正常使用\"" + BaseApplication.getApplication().getAppName() + "\"，请授予所需权限", false,
+//                            () -> requestPermissions(mNecessaryPermissions, this));
+//                } else { //全被勾选不再提示
+//                    showPermissionDialog(false);
+//                }
+//            }
+//        });
+//    }
+
+    /**
+     * 插入日历事件
+     */
+    private void addCalendarEvent(long repaymentTime) {
+        CalendarHelper calendarHelper = CalendarHelper.getInstance();
+        long remindTime = calendarHelper.dealTime(repaymentTime);
+        calendarHelper.setData("提醒", "备注", remindTime);
+        calendarHelper.addCalendarEvent(this, true);
+        calendarHelper.setOnCalendarQueryComplete(new CalendarHelper.OnCalendarQueryCompleteListener() {
+            @Override
+            public void onQueryComplete(boolean isSucceed) {
+                if (isSucceed) {
+                    Log.d("addCalendarEvent()", "succee");
+                }
+            }
+        });
+    }
+
+    /**
+     * 查询日历事件
+     */
+    private void queryCalendarEvent(long repaymentTime) {
+        CalendarHelper calendarHelper = CalendarHelper.getInstance();
+        long remindTime = calendarHelper.dealTime(repaymentTime);
+        calendarHelper.queryCalendarEvent(this, true, remindTime);
+        calendarHelper.setOnCalendarQueryComplete(new CalendarHelper.OnCalendarQueryCompleteListener() {
+            @Override
+            public void onQueryComplete(boolean isSucceed) {
+                if (isSucceed) {
+                    Log.d("queryCalendarEvent()", "succee");
+                } else {
+                    Log.d("queryCalendarEvent()", "fail");
+                }
+            }
+        });
     }
 }
